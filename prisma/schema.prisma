@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  productsCreated      Product[]  @relation("ProductCreateUser")
+  productsUpdated      Product[]  @relation("ProductUpdateUser")
+  productsDeleted      Product[]  @relation("ProductDeleteUser")
+  
+  categoriesCreated   Category[] @relation("CategoryCreateUser")
+  categoriesUpdated   Category[] @relation("CategoryUpdateUser")
+  categoriesDeleted   Category[] @relation("CategoryDeleteUser")
+
+  @@map("users")
+}
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  code        String    @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  
+  createdById    String
+  updatedById    String?
+  deletedById    String?
+
+  createdBy    User     @relation("CategoryCreateUser", fields: [createdById], references: [id])
+  updatedBy    User?    @relation("CategoryUpdateUser", fields: [updatedById], references: [id])
+  deletedBy    User?    @relation("CategoryDeleteUser", fields: [deletedById], references: [id])
+  
+  products Product[]
+
+  @@map("categories")
+}
+model Product {
+  id          String    @id @default(uuid())
+  name      String
+  descripcion String?
+  price      Float
+  stock       Int       @default(0)
+  categoryId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  
+  createdById    String
+  updatedById    String?
+  deletedById    String?
+
+  category     Category @relation(fields: [categoryId], references: [id])
+  createdBy    User   @relation("ProductCreateUser", fields: [createdById], references: [id])
+  updatedBy    User?  @relation("ProductUpdateUser", fields: [updatedById], references: [id])
+  deletedBy    User?  @relation("ProductDeleteUser", fields: [deletedById], references: [id])
+
+
+  @@map("products")
+}
